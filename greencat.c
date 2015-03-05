@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -12,6 +13,8 @@
 #define COLOR_RESET "\033[0m"
 
 #define SLOW_SLEEP (10 * 1000) /* 10ms */
+
+int failures = 0;
 
 void color_reset()
 {
@@ -53,6 +56,12 @@ void color_print(FILE *file, bool slow)
     color_reset();
 }
 
+void cleanup_and_exit()
+{
+    color_reset();
+    _exit(failures);
+}
+
 int main(int argc, char *argv[])
 {
     bool slow = false;
@@ -67,13 +76,8 @@ int main(int argc, char *argv[])
     }
 
     srand(time(NULL));
-
-    if (slow)
-    {
-        setbuf(stdout, NULL);
-    }
-
-    int failures = 0;
+    signal(SIGINT, cleanup_and_exit);
+    setbuf(stdout, NULL);
 
     if (argc > 1)
     {
